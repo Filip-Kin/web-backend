@@ -6,10 +6,12 @@ import * as chalk from 'chalk';
 
 import { DB } from './DB';
 import { Blog } from './Blog';
+import { User } from './User';
 const { config } = require('../config');
 
 const sql = new DB(config.mysql);
 const blog = new Blog(sql);
+const user = new User(sql);
 
 const app = express();
 const PORT = parseInt(process.env.PORT) || 8000;
@@ -42,9 +44,8 @@ app.get('/posts/:s/:e?', (req, res) => blog.handleGetPosts(req, res));
 app.get('/post/:id', (req, res) => blog.handleGetPost(req, res));
 
 
-app.get('/post/:id', async (req, res) => {
-    res.send({ post: (await query('SELECT * FROM posts WHERE `id` = ?;', [req.params.id]))[0] });
-});
+app.post('/user/', async (req, res) => user.handleCreateUser(req, res));
+app.post('/user/password', async (req, res) => user.handleUpdatePassword(req, res));
 
 app.post('/store/upload', async (req, res) => {
     try {
