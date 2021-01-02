@@ -2,26 +2,17 @@ import * as express from 'express';
 import * as fileUpload from 'express-fileupload';
 import { json, urlencoded } from 'body-parser';
 import { v4 as uuid } from 'uuid';
-import { createConnection, escape } from 'mysql';
-import { create } from 'domain';
 import * as chalk from 'chalk';
+
+import { DB } from './DB';
+import { Blog } from './Blog';
 const { config } = require('../config');
+
+const sql = new DB(config.mysql);
+const blog = new Blog(sql);
 
 const app = express();
 const PORT = parseInt(process.env.PORT) || 8000;
-const conn = createConnection(config.mysql);
-
-const query = (sql, params = []): Promise<Array<any>> => {
-    return new Promise((resolve, reject) => {
-        conn.query(sql, params, (err, res) => {
-            if (err) return reject(err);
-            resolve(res);
-        })
-    });
-}
-
-conn.query('CREATE TABLE IF NOT EXISTS `posts` ( `id` VARCHAR(36) NOT NULL, `title` TEXT NOT NULL, `published` DATETIME NOT NULL, `content` TEXT NOT NULL, `images` JSON NOT NULL, `comments` JSON NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;');
-conn.query('CREATE TABLE IF NOT EXISTS `users` ( `id` VARCHAR(36) NOT NULL, `name` VARCHAR(256) NOT NULL, `email` VARCHAR(256) NOT NULL, `password` VARCHAR(60) NOT NULL, `role` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;');
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -46,12 +37,10 @@ app.post('/restartapp', (req, res) => {
     }
 });
 
-app.get('/posts/:n?/:s?', async (req, res) => {
-    let posts = <Array<any>>await query('SELECT * FROM posts ORDER BY `published` DESC;');
-    if (req.params.n && req.params.s) posts = posts.slice(parseInt(req.params.s), parseInt(req.params.n));
-    else if (req.params.n) posts = posts.slice(0, parseInt(req.params.n));
-    res.send({ posts: posts });
-});
+
+app.get('/posts/:s/:e?', (req, res) => blog.handleGetPosts(req, res));
+app.get('/post/:id', (req, res) => blog.handleGetPost(req, res));
+
 
 app.get('/post/:id', async (req, res) => {
     res.send({ post: (await query('SELECT * FROM posts WHERE `id` = ?;', [req.params.id]))[0] });
