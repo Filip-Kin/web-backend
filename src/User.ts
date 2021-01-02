@@ -5,9 +5,9 @@ import { DB } from './db';
 import { IncomingHttpHeaders } from 'http2';
 
 const SALT_ROUNDS = 10;
-const ADMIN_ROLE = 0;
-const EDITOR_ROLE = 1;
-const VIEWER_ROLE = 2;
+export const ADMIN_ROLE = 0;
+export const EDITOR_ROLE = 1;
+export const VIEWER_ROLE = 2;
 
 export class User {
     private sql: DB;
@@ -42,6 +42,11 @@ export class User {
         return await this.auth(headers['id'].toString(), headers['password'].toString(), level);
     }
 
+    public static handleAuthSimple = async (user: Account, level: 0 | 1 | 2 = EDITOR_ROLE): Promise<null | Account> => {
+        if (!user || user.role < level) return null;
+        return user;
+    }
+
 
 
     public createUser = async (name: string, email: string, password: string, role: 0 | 1 | 2): Promise<Account> => {
@@ -64,7 +69,7 @@ export class User {
             return res.send({ error: 'Missing Parameters' });
         }
 
-        if (!(await this.handleAuth(req.headers, ADMIN_ROLE))) {
+        if (!(await User.handleAuthSimple(req.body.user, ADMIN_ROLE))) {
             res.status(403);
             return res.send({ error: 'Authentication Error' })
         }
@@ -94,14 +99,13 @@ export class User {
             return res.send({ error: 'Missing Parameters' });
         }
 
-        let auth = await this.handleAuth(req.headers, VIEWER_ROLE);
-        if (!auth) {
+        if (!(await User.handleAuthSimple(req.body.user, VIEWER_ROLE))) {
             res.status(403);
             return res.send({ error: 'Authentication Error' })
         }
 
         try {
-            await this.updatePassword(req.body.password, auth.id);
+            await this.updatePassword(req.body.password, req.body.user.id);
             res.send({ success: true });
         } catch (err) {
             res.status(500);

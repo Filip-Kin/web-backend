@@ -44,6 +44,12 @@ app.get('/posts/:s/:e?', (req, res) => blog.handleGetPosts(req, res));
 app.get('/post/:id', (req, res) => blog.handleGetPost(req, res));
 
 
+app.use(async (req, res, next) => {
+    req.body.user = await user.handleAuth(req.headers);
+    next();
+});
+
+
 app.post('/user/', async (req, res) => user.handleCreateUser(req, res));
 app.post('/user/password', async (req, res) => user.handleUpdatePassword(req, res));
 
