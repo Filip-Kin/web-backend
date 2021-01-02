@@ -36,6 +36,16 @@ app.use(fileUpload({
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
+app.post('/restartapp', (req, res) => {
+    if (req.body.hook_id === 272574612) {
+    	res.send(true);
+        process.exit();
+    } else {
+        res.status(403)
+        res.send(false);
+    }
+});
+
 app.get('/posts/:n?/:s?', async (req, res) => {
     let posts = <Array<any>>await query('SELECT * FROM posts ORDER BY `published` DESC;');
     if (req.params.n && req.params.s) posts = posts.slice(parseInt(req.params.s), parseInt(req.params.n));
