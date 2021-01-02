@@ -30,7 +30,7 @@ export class User {
         let user = <Account>result[0];
         try {
             // If compare succeeds than password is correct and return if role is higher than required
-            if (await compare(password, user.password) && user.role >= level) return user;
+            if (await compare(password, user.password) && user.role <= level) return user;
             return null; // if compare fails return false
         } catch (err) {
             throw err;
@@ -43,8 +43,39 @@ export class User {
     }
 
     public static handleAuthSimple = async (user: Account, level: 0 | 1 | 2 = EDITOR_ROLE): Promise<null | Account> => {
-        if (!user || user.role < level) return null;
+        if (!user || user.role > level) return null;
         return user;
+    }
+
+
+
+    public login = async (email: string, password: string) => {
+        let response = await this.sql.query('SELECT * FROM `users` WHERE `email` = ?', [email]);
+        if (response.length !== 1) throw new Error('Email not found');
+        let user = <Account>response[0];
+        return this.auth(user.id, password, VIEWER_ROLE);
+    }
+
+    public handleLogin = async (req: Request, res: Response): Promise<any> => {
+        if (
+            !req.body.hasOwnProperty('email') ||
+            !req.body.hasOwnProperty('password')) {
+            res.status(400);
+            return res.send({ error: 'Missing Parameters' });
+        }
+
+        try {
+            let user = await this.login(req.body.email, req.body.password);
+            if (!user) {
+                res.status(403);
+                return res.send({ error: 'Authentication error' });
+            }
+            user.password = req.body.password;
+            res.send({ user: user });
+        } catch (err) {
+            res.status(500);
+            res.send({ error: err.message });
+        }
     }
 
 
@@ -76,6 +107,7 @@ export class User {
 
         try {
             let user = await this.createUser(req.body.name, req.body.email, req.body.password, req.body.role);
+            delete user.password;
             res.send({ user: user });
         } catch (err) {
             res.status(500);

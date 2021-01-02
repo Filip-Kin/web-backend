@@ -1,5 +1,7 @@
+import { v4 as uuid } from 'uuid';
 import { Request, Response } from 'express';
 import { DB } from './db';
+import { User, EDITOR_ROLE } from './User';
 
 export class Blog {
     private sql: DB;
@@ -31,6 +33,66 @@ export class Blog {
     public handleGetPosts = async (req: Request, res: Response): Promise<any> => {
         let posts = await this.getBlogList(parseInt(req.params.s), (req.params.e) ? 20 : parseInt(req.params.e));
         res.send({ posts: posts });
+    }
+
+
+
+    public createPost = async (title: string, content: string): Promise<Post> => {
+        let images = []; // store an array of images seperately so we know what to delete and what to display on the home page
+        let m;
+        console.log(content);
+
+        // is there a better way to do this? probably
+        for (let i = 0; i < content.length; i) {
+            // this will match the next image
+            m = (/(?:!\[(.*?)\]\((.*?)\))/g).exec(content.substring(i));
+            if (m) {
+                // this horrible thing will split the domain from the file name and just get the file name
+                images.push(m[2].replace('https://', '').split('/')[1]);
+                // and then setup the substring for next iteration
+                i += m.index + m[0].length;
+            } else break;
+        }
+
+
+        let post = <Post>{
+            id: uuid(),
+            title: title,
+            published: new Date(),
+            content: content,
+            images: images
+        }
+        console.log(post);
+        let postSql = {
+            id: post.id,
+            title: title,
+            published: post.published.toJSON().slice(0, 19).replace('T', ' '),
+            content: content,
+            images: JSON.stringify(images)
+        }
+        await this.sql.query('INSERT INTO `posts` SET ?', postSql);
+        return post;
+    }
+
+    public handleCreatePost = async (req: Request, res: Response): Promise<any> => {
+        if (!req.body.hasOwnProperty('title') ||
+            !req.body.hasOwnProperty('content')) {
+            res.status(400);
+            return res.send({ error: 'Missing Parameters' });
+        }
+
+        if (!(await User.handleAuthSimple(req.body.user, EDITOR_ROLE))) {
+            res.status(403);
+            return res.send({ error: 'Authentication Error' })
+        }
+
+        try {
+            let post = await this.createPost(req.body.title, req.body.content);
+            res.send({ post: post });
+        } catch (err) {
+            res.status(500);
+            res.send({ error: err.message });
+        }
     }
 }
 
