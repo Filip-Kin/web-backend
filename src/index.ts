@@ -37,7 +37,7 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 
 app.post('/restartapp', (req, res) => {
-    if (req.body.hook_id === 272574612) {
+    if (req.body.repository.id === 326067272) {
     	res.send(true);
         process.exit();
     } else {
