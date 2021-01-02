@@ -57,6 +57,7 @@ app.post('/user/password', (req, res) => user.handleUpdatePassword(req, res));
 
 
 app.post('/post/', (req, res) => blog.handleCreatePost(req, res));
+app.patch('/post/:id', (req, res) => blog.handleUpdatePost(req, res));
 
 app.post('/store/upload', async (req, res) => {
     try {
