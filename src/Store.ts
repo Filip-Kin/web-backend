@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { existsSync, unlink } from 'fs';
 import { join } from 'path';
 
-export const deleteFile = async (file: string): any => {
+export const deleteFile = async (file: string): Promise<any> => {
     if (existsSync(join('./store/', file))) {
         unlink(join('./store/', file), (err) => {
             if (err) throw err;
@@ -13,7 +13,7 @@ export const deleteFile = async (file: string): any => {
     return false;
 }
 
-export const upload = async (req: Request, res: Response): string => {
+export const upload = async (req: Request, res: Response): Promise<any> => {
   try {
       // @ts-ignore
       if (!req.files) {
@@ -31,8 +31,6 @@ export const upload = async (req: Request, res: Response): string => {
 
           //send response
           res.send({
-              status: true,
-              message: 'File is uploaded',
               id: id
           });
       }

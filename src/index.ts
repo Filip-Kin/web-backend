@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as fileUpload from 'express-fileupload';
+import * as cors from 'cors';
 import { json, urlencoded } from 'body-parser';
 import * as chalk from 'chalk';
 
@@ -18,9 +19,8 @@ const user = new User(sql);
 const app = express();
 const PORT = parseInt(process.env.PORT) || 8000;
 
+app.use(cors());
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     console.log(chalk.bold(`[${(new Date()).toISOString()}] `) + req.ip + ' Requesting: ' + chalk.bold.green(req.url));
     next();
 });
