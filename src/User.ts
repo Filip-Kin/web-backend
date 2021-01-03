@@ -56,7 +56,7 @@ export class User {
 
     public login = async (email: string, password: string) => {
         let response = await this.sql.query('SELECT * FROM `users` WHERE `email` = ?', [email]);
-        if (response.length !== 1) throw new Error('Email not found');
+        if (response.length !== 1) return null;
         let user = <Account>response[0];
         return this.auth(user.id, password, VIEWER_ROLE);
     }
