@@ -31,7 +31,7 @@ export class User {
         try {
             // If compare succeeds than password is correct and return if role is higher than required
             if (await compare(password, user.password) && user.role <= level) {
-                if (user.reset_password && level < VIEWER_ROLE) throw new Error('Password reset required');
+                if (user.reset_password) throw new Error('Password reset required');
                 return user;
                 
             }
