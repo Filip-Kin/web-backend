@@ -28,11 +28,10 @@ export class Gallery {
     }
 
     public handleCreateAlbum = async (req: Request, res: Response): Promise<any> => {
-        /*if (!(await User.handleAuthSimple(req.body.user, EDITOR_ROLE))) {
+        if (!(await User.handleAuthSimple(req.body.user, EDITOR_ROLE))) {
             res.status(403);
             return res.send({ error: 'Authentication Error' })
         }
-        */
 
         if (!req.body.hasOwnProperty('name') ||
             !req.body.hasOwnProperty('weight') ||
