@@ -1,7 +1,7 @@
 import { hash, compare } from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { Request, Response } from 'express';
-import { DB } from './db';
+import { DB } from './DB';
 import { IncomingHttpHeaders } from 'http2';
 
 const SALT_ROUNDS = 10;

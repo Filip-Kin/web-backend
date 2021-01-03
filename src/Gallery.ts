@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { Request, Response } from 'express';
-import { DB } from './db';
+import { DB } from './DB';
 import { User, EDITOR_ROLE } from './User';
 
 export class Gallery {
