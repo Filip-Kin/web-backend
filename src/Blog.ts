@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { Request, Response } from 'express';
 import { DB } from './DB';
-import { User, EDITOR_ROLE } from './User';
+import { deleteFile } from './Store';
 
 export class Blog {
     private sql: DB;
@@ -11,7 +11,7 @@ export class Blog {
     }
 
     public getPost = async (id: string): Promise<Post> => {
-        let result = (await this.sql.query('SELECT * FROM posts WHERE `id` = ?;', [id]));
+        let result = (await this.sql.query('SELECT * FROM `posts` WHERE `id` = ?;', [id]));
         if (result.length !== 1) throw new Error('Post not found');
         return <Post>result[0];
     }
@@ -27,7 +27,7 @@ export class Blog {
     }
 
     public getPostList = async (s: number, e: number = 20): Promise<Post[]> => {
-        return (<Post[]>await this.sql.query('SELECT * FROM posts ORDER BY `published` DESC;')).slice(s, e);
+        return (<Post[]>await this.sql.query('SELECT * FROM `posts` ORDER BY `published` DESC;')).slice(s, e);
     }
 
     public handleGetPosts = async (req: Request, res: Response): Promise<any> => {
@@ -78,7 +78,7 @@ export class Blog {
         let postSql = {
             id: post.id,
             title: title,
-            published: post.published.toJSON().slice(0, 19).replace('T', ' '),
+            published: DB.mysqlDatetime(post.published),
             content: content,
             images: JSON.stringify(images)
         }
@@ -91,11 +91,6 @@ export class Blog {
             !req.body.hasOwnProperty('content')) {
             res.status(400);
             return res.send({ error: 'Missing Parameters' });
-        }
-
-        if (!(await User.handleAuthSimple(req.body.user, EDITOR_ROLE))) {
-            res.status(403);
-            return res.send({ error: 'Authentication Error' })
         }
 
         try {
@@ -114,14 +109,27 @@ export class Blog {
             return res.send({ error: 'Missing Parameters' });
         }
 
-        if (!(await User.handleAuthSimple(req.body.user, EDITOR_ROLE))) {
-            res.status(403);
-            return res.send({ error: 'Authentication Error' })
-        }
-
         try {
             let post = await this.createPost(req.body.title, req.body.content, req.params.id);
             res.send({ post: post });
+        } catch (err) {
+            res.status(500);
+            res.send({ error: err.message });
+        }
+    }
+
+    public deletePost = async (id: string): Promise<any> => {
+        for (let file of (await this.getPost(id)).images) {
+            deleteFile(file);
+        }
+        await this.sql.query('DELETE FROM `posts` WHERE `id` = ?', [id]);
+        return;
+    }
+
+    public handleDeletePost = async (req: Request, res: Response): Promise<any> => {
+        try {
+            await this.deletePost(req.params.id);
+            res.send({ success: true });
         } catch (err) {
             res.status(500);
             res.send({ error: err.message });

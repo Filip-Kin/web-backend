@@ -30,7 +30,11 @@ export class User {
         let user = <Account>result[0];
         try {
             // If compare succeeds than password is correct and return if role is higher than required
-            if (await compare(password, user.password) && user.role <= level) return user;
+            if (await compare(password, user.password) && user.role <= level) {
+                if (user.reset_password && level < VIEWER_ROLE) throw new Error('Password reset required');
+                return user;
+                
+            }
             return null; // if compare fails return false
         } catch (err) {
             throw err;
@@ -44,6 +48,7 @@ export class User {
 
     public static handleAuthSimple = async (user: Account, level: 0 | 1 | 2 = EDITOR_ROLE): Promise<null | Account> => {
         if (!user || user.role > level) return null;
+        if (user.reset_password && level < VIEWER_ROLE) throw new Error('Password reset required');
         return user;
     }
 
@@ -73,6 +78,11 @@ export class User {
             user.password = req.body.password;
             res.send({ user: user });
         } catch (err) {
+            if (err.message === 'Password reset required') {
+                res.status(418); // Brew teh tea
+                res.send({ id: (await this.sql.query('SELECT * FROM `users` WHERE `email` = ?', [req.body.email]))[0].id, error: err.message });
+                return;
+            }
             res.status(500);
             res.send({ error: err.message });
         }
@@ -100,11 +110,6 @@ export class User {
             return res.send({ error: 'Missing Parameters' });
         }
 
-        if (!(await User.handleAuthSimple(req.body.user, ADMIN_ROLE))) {
-            res.status(403);
-            return res.send({ error: 'Authentication Error' })
-        }
-
         try {
             let user = await this.createUser(req.body.name, req.body.email, req.body.password, req.body.role);
             delete user.password;
@@ -119,7 +124,7 @@ export class User {
 
     public updatePassword = async (password: string, id: string): Promise<any> => {
         try {
-            await this.sql.query('UPDATE `users` SET `password` = ? WHERE `id` = ?', [await this.hash(password), id]);
+            await this.sql.query('UPDATE `users` SET `password` = ?, `reset_password` = FALSE WHERE `id` = ?', [await this.hash(password), id]);
         } catch (err) {
             throw err;
         }
@@ -131,13 +136,23 @@ export class User {
             return res.send({ error: 'Missing Parameters' });
         }
 
-        if (!(await User.handleAuthSimple(req.body.user, VIEWER_ROLE))) {
-            res.status(403);
-            return res.send({ error: 'Authentication Error' })
+        try {
+            await this.updatePassword(req.body.password, req.body.user.id);
+            res.send({ success: true });
+        } catch (err) {
+            res.status(500);
+            res.send({ error: err.message });
+        }
+    }
+
+    public handleResetPasswordUser = async (req: Request, res: Response): Promise<any> => {
+        if (!req.body.hasOwnProperty('password')) {
+            res.status(400);
+            return res.send({ error: 'Missing Parameters' });
         }
 
         try {
-            await this.updatePassword(req.body.password, req.body.user.id);
+            await this.updatePassword(req.body.password, req.params.id);
             res.send({ success: true });
         } catch (err) {
             res.status(500);
@@ -152,4 +167,5 @@ export interface Account {
     email: string
     password: string
     role: 0 | 1 | 2
+    reset_password: boolean
 }
