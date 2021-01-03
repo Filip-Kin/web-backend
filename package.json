@@ -4,7 +4,7 @@
   "description": "",
   "main": "./out/index.js",
   "scripts": {
-    "start": "nodemon ./out/",
+    "start": "node ./out/",
     "build": "npx tsc"
   },
   "author": "",

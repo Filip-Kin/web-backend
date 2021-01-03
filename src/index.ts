@@ -44,7 +44,8 @@ app.post('/restartapp', (req, res) => {
 
 app.get('/posts/:s/:e?', (req, res) => blog.handleGetPosts(req, res));
 app.get('/post/:id', (req, res) => blog.handleGetPost(req, res));
-app.get('/gallery', (req, res) => gallery.createAlbum())
+app.get('/gallery/:id',(req, res) => {})
+app.post('/gallery', (req, res) => gallery.handleCreateAlbum(req,res));
 app.post('/user/login', (req, res) => user.handleLogin(req, res));
 
 
