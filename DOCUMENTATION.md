@@ -48,6 +48,7 @@ VIEWER_ROLE = 2;
 | GET    | `/gallery`     | none            | List of album objects                               |
 | GET    | `/gallery/:id` | none            | Single album object                                 |
 | POST   | `/user/login`  | email, password | User object or reset password error or unauthorized |
+| POST   | `/user/auth`   | id, password    | User object or reset password error or unauthorized |
 
 ### Viewer permission
 
