@@ -11,6 +11,10 @@ export class Gallery {
     }
 
     public createAlbum() {
-        this.sql.query("SELECT * FROM")
+        this.sql.query("SELECT * FROM `gallery`").then((value) => {
+            return value
+        }).catch(reason => {
+            throw new Error(reason);
+        })
     }
 }

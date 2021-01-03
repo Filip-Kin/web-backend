@@ -5,12 +5,14 @@ import { v4 as uuid } from 'uuid';
 import * as chalk from 'chalk';
 
 import { DB } from './DB';
+import {Gallery} from './gallery'
 import { Blog } from './Blog';
 import { User } from './User';
 const { config } = require('../config');
 
 const sql = new DB(config.mysql);
 const blog = new Blog(sql);
+const gallery = new Gallery(sql);
 const user = new User(sql);
 
 const app = express();
@@ -42,7 +44,7 @@ app.post('/restartapp', (req, res) => {
 
 app.get('/posts/:s/:e?', (req, res) => blog.handleGetPosts(req, res));
 app.get('/post/:id', (req, res) => blog.handleGetPost(req, res));
-
+app.get('/gallery', (req, res) => gallery.createAlbum())
 app.post('/user/login', (req, res) => user.handleLogin(req, res));
 
 
