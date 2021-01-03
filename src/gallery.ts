@@ -10,33 +10,50 @@ export class Gallery {
         this.sql = db;
     }
 
-    private createAlbum = async (req: Request,res: Response):Promise<any> => {
-        console.log(uuid())
-        console.log(`${JSON.stringify(req.body.images)}`)
-        this.sql.query(`INSERT INTO gallery (id, name, weight, images) VALUES ("${uuid()}", "${req.body.name}", "${req.body.weight}', "${JSON.stringify(req.body.images)}")`).then((value) => {
-           // console.log(value)
-        }).catch(reason => {
-            console.log(reason)
-        })
+    private createAlbum = async (name: string, weight: number, images: string[]): Promise<any> => {
+        let album = <Album>{
+            id: uuid(),
+            name: name,
+            weight: weight,
+            images: images
+        }
+        let albumSql = {
+            id: album.id,
+            name: name,
+            weight: weight,
+            images: JSON.stringify(images)
+        }
+        await this.sql.query('INSERT INTO `gallery` SET ?', albumSql);
+        return album
     }
 
-    public handleCreateAlbum = async(req: Request, res: Response):Promise<any> => {
+    public handleCreateAlbum = async (req: Request, res: Response): Promise<any> => {
         /*if (!(await User.handleAuthSimple(req.body.user, EDITOR_ROLE))) {
             res.status(403);
             return res.send({ error: 'Authentication Error' })
         }
-*/
-        if (!req.body.hasOwnProperty('name')) {
+        */
+
+        if (!req.body.hasOwnProperty('name') ||
+            !req.body.hasOwnProperty('weight') ||
+            !req.body.hasOwnProperty('images')) {
             res.status(400);
             res.send({ error: 'Missing Parameters' });
         }
 
         try {
-            let post = await this.createAlbum(req, res);
-            res.send({ post: post });
+            let album = await this.createAlbum(req.body.name, req.body.weight, req.body.images);
+            res.send({ album: album });
         } catch (err) {
             res.status(500);
             res.send({ error: err.message });
         }
     }
+}
+
+interface Album {
+    id: string
+    name: string
+    weight: number
+    images: string[]
 }

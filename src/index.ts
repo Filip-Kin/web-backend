@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 import * as chalk from 'chalk';
 
 import { DB } from './DB';
-import {Gallery} from './gallery'
+import {Gallery} from './Gallery'
 import { Blog } from './Blog';
 import { User } from './User';
 const { config } = require('../config');
@@ -64,12 +64,14 @@ app.patch('/post/:id', (req, res) => blog.handleUpdatePost(req, res));
 
 app.post('/store/upload', async (req, res) => {
     try {
+        // @ts-ignore
         if (!req.files) {
             res.send({
                 status: false,
                 message: 'No file uploaded'
             });
         } else {
+            // @ts-ignore
             let image = req.files.image;
             let id = uuid() + '.' + image.name.split('.').pop();
 
