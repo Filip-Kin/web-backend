@@ -88,6 +88,32 @@ export class User {
         }
     }
 
+    public handleLoginID = async (req: Request, res: Response): Promise<any> => {
+        if (
+            !req.body.hasOwnProperty('id') ||
+            !req.body.hasOwnProperty('password')) {
+            res.status(400);
+            return res.send({ error: 'Missing Parameters' });
+        }
+
+        try {
+            let user = await this.auth(req.body.id, req.body.password, VIEWER_ROLE);
+            if (!user) {
+                res.status(403);
+                return res.send({ error: 'Authentication error' });
+            }
+            user.password = req.body.password;
+            res.send({ user: user });
+        } catch (err) {
+            if (err.message === 'Password reset required') {
+                res.status(418); // Brew teh tea
+                res.send({ id: req.body.id, error: err.message });
+                return;
+            }
+            res.status(500);
+            res.send({ error: err.message });
+        }
+    }
 
 
     public createUser = async (name: string, email: string, password: string, role: 0 | 1 | 2): Promise<Account> => {
