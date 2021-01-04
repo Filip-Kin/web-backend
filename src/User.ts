@@ -28,6 +28,7 @@ export class User {
         let result = await this.sql.query('SELECT * FROM `users` WHERE id = ?', [id])
         if (result.length !== 1) return null;
         let user = <Account>result[0];
+
         try {
             // If compare succeeds than password is correct and return if role is higher than required
             if (await compare(password, user.password) && user.role <= level) {
@@ -126,17 +127,15 @@ export class User {
     }
 
     public handleGetAllUsers = async (req: Request, res: Response): Promise<any> => {
-        if (!req.body.hasOwnProperty('email') && !req.body.hasOwnProperty('password')) {
+        if (!req.body.hasOwnProperty('id') && !req.body.hasOwnProperty('password')) {
             res.status(400);
             return res.send({ error: 'Missing Parameters' });
         }
 
         try {
-            let response = await this.sql.query('SELECT * FROM `users` WHERE `email` = ?', [req.body.email]);
-            if (response.length !== 1) return null;
-            let user = <Account>response[0];
+            const user = await this.auth(req.body.id, req.body.password, ADMIN_ROLE);
 
-            if (user.role == ADMIN_ROLE) {
+            if (user) {
                 let allUsers = await this.getAllUsers();
                 res.send({ users: allUsers });
             }
