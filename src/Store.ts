@@ -17,9 +17,9 @@ export const upload = async (req: Request, res: Response): Promise<any> => {
   try {
       // @ts-ignore
       if (!req.files) {
+          res.status(400);
           res.send({
-              status: false,
-              message: 'No file uploaded'
+              error: 'No file uploaded'
           });
       } else {
           // @ts-ignore
@@ -35,6 +35,6 @@ export const upload = async (req: Request, res: Response): Promise<any> => {
           });
       }
   } catch (err) {
-      res.status(500).send(err);
+      res.status(500).send({ error: err });
   }
 }
