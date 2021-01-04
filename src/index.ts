@@ -5,7 +5,7 @@ import { json, urlencoded } from 'body-parser';
 import * as chalk from 'chalk';
 
 import { DB } from './DB';
-import { upload } from './Store';
+import { handleDeleteFiles, upload } from './Store';
 import { Gallery } from './Gallery'
 import { Blog } from './Blog';
 import { ADMIN_ROLE, EDITOR_ROLE, User, VIEWER_ROLE } from './User';
@@ -100,7 +100,7 @@ app.post('/gallery/:id/add/:file', (req, res) => gallery.handleAddToAlbum(req,re
 app.post('/gallery/:id/remove/:file', (req, res) => gallery.handleRemoveFromAlbum(req, res));
 
 app.post('/store/upload', (req, res) => upload(req, res));
-app.delete('/store/delete', (req, res) => upload(req, res));
+app.delete('/store/delete', (req, res) => handleDeleteFiles(req, res));
 
 
 app.use(async (req, res, next) => {
