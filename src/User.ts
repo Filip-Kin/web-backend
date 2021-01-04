@@ -134,7 +134,6 @@ export class User {
 
         try {
             const user = await this.auth(req.body.id, req.body.password, ADMIN_ROLE);
-
             if (user) {
                 let allUsers = await this.getAllUsers();
                 res.send({ users: allUsers });
