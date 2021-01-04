@@ -13,6 +13,26 @@ export const deleteFile = async (file: string): Promise<any> => {
     return false;
 }
 
+export const deleteFiles = async (files: string[]): Promise<any> => {
+    for (let file of files) await deleteFile(file);
+}
+
+export const handleDeleteFiles = async (req: Request, res: Response): Promise<any> => {
+    if (
+        !req.body.hasOwnProperty('images')) {
+        res.status(400);
+        return res.send({ error: 'Missing Parameters' });
+    }
+
+    try {
+        let user = await deleteFile(req.body.images);
+        res.send({ success: true });
+    } catch (err) {
+        res.status(500);
+        res.send({ error: err.message });
+    }
+}
+
 export const upload = async (req: Request, res: Response): Promise<any> => {
   try {
       // @ts-ignore

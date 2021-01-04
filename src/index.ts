@@ -100,6 +100,7 @@ app.post('/gallery/:id/add/:file', (req, res) => gallery.handleAddToAlbum(req,re
 app.post('/gallery/:id/remove/:file', (req, res) => gallery.handleRemoveFromAlbum(req, res));
 
 app.post('/store/upload', (req, res) => upload(req, res));
+app.delete('/store/delete', (req, res) => upload(req, res));
 
 
 app.use(async (req, res, next) => {
