@@ -135,7 +135,6 @@ export class User {
             let response = await this.sql.query('SELECT * FROM `users` WHERE `email` = ?', [req.body.email]);
             if (response.length !== 1) return null;
             let user = <Account>response[0];
-            console.log(user);
 
             if (user.role == ADMIN_ROLE) {
                 let allUsers = await this.getAllUsers();
