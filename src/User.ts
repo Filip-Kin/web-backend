@@ -117,7 +117,7 @@ export class User {
 
     public getAllUsers = async () => {
         try {
-            let users = await this.sql.query('INSERT INTO `users`');
+            let users = await this.sql.query('SELECT * FROM `users`');
             return users
         }
         catch (err) {
@@ -131,22 +131,23 @@ export class User {
             return res.send({ error: 'Missing Parameters' });
         }
 
+        try {
+            let response = await this.sql.query('SELECT * FROM `users` WHERE `email` = ?', [req.body.email]);
+            if (response.length !== 1) return null;
+            let user = <Account>response[0];
+            console.log(user);
 
-        if (req.body.hasOwnProperty('role') == 0) {
-            try {
-                let user = await this.auth(req.body.email, req.body.password, ADMIN_ROLE);
-                if (!user) {
-                    res.status(403);
-                    return res.send({ error: 'Authentication error' });
-                }
-                else {
-                    let allUsers = await this.getAllUsers();
-                    res.send({ users: allUsers });
-                }
-            } catch (err) {
-                res.status(500);
-                res.send({ error: err.message });
+            if (user.role == ADMIN_ROLE) {
+                let allUsers = await this.getAllUsers();
+                res.send({ users: allUsers });
             }
+            else {
+                res.status(403);
+                return res.send({ error: 'Authentication error' });
+            }
+        } catch (err) {
+            res.status(500);
+            res.send({ error: err.message });
         }
 
     }
