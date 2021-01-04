@@ -18,14 +18,13 @@ export const deleteFiles = async (files: string[]): Promise<any> => {
 }
 
 export const handleDeleteFiles = async (req: Request, res: Response): Promise<any> => {
-    if (
-        !req.body.hasOwnProperty('images')) {
+    if (!req.body.hasOwnProperty('images')) {
         res.status(400);
         return res.send({ error: 'Missing Parameters' });
     }
 
     try {
-        let user = await deleteFile(req.body.images);
+        await deleteFiles(req.body.images);
         res.send({ success: true });
     } catch (err) {
         res.status(500);
