@@ -115,6 +115,41 @@ export class User {
         }
     }
 
+    public getAllUsers = async () => {
+        try {
+            let users = await this.sql.query('INSERT INTO `users`');
+            return users
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+
+    public handleGetAllUsers = async (req: Request, res: Response): Promise<any> => {
+        if (!req.body.hasOwnProperty('email') && !req.body.hasOwnProperty('password')) {
+            res.status(400);
+            return res.send({ error: 'Missing Parameters' });
+        }
+
+
+        if (req.body.hasOwnProperty('role') == 0) {
+            try {
+                let user = await this.auth(req.body.email, req.body.password, ADMIN_ROLE);
+                if (!user) {
+                    res.status(403);
+                    return res.send({ error: 'Authentication error' });
+                }
+                else {
+                    let allUsers = await this.getAllUsers();
+                    res.send({ users: allUsers });
+                }
+            } catch (err) {
+                res.status(500);
+                res.send({ error: err.message });
+            }
+        }
+
+    }
 
     public createUser = async (name: string, email: string, password: string, role: 0 | 1 | 2): Promise<Account> => {
         try {

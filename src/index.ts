@@ -51,6 +51,7 @@ app.get('/gallery', (req, res) => gallery.handleGetAlbums(req, res));
 app.get('/gallery/:id', (req, res) => gallery.handleGetAlbum(req, res));
 app.post('/user/login', (req, res) => user.handleLogin(req, res));
 app.post('/user/auth', (req, res) => user.handleLoginID(req, res));
+app.get('/users',(req, res) => user.handleGetAllUsers(req,res))
 
 app.use(async (req, res, next) => {
     try {
