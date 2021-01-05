@@ -103,6 +103,10 @@ export class Gallery {
             weight: weight,
             name: name
         };
+        if (!images) delete update.images;
+        if (!weight) delete update.weight;
+        if (!name) delete update.name;
+        
         await this.sql.query('UPDATE `gallery` SET ? WHERE `id` = ?', [update, id]);
         return;
     }
