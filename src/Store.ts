@@ -4,13 +4,17 @@ import { existsSync, unlink } from 'fs';
 import { join } from 'path';
 
 export const deleteFile = async (file: string): Promise<any> => {
-    if (existsSync(join('./store/', file))) {
-        unlink(join('./store/', file), (err) => {
-            if (err) throw err;
-            return true;
-        });
+    try {
+        if (existsSync(join('./store/', file))) {
+            unlink(join('./store/', file), (err) => {
+                if (err) throw err;
+                return true;
+            });
+        }
+        return false;
+    } catch (err) {
+        console.error(err);
     }
-    return false;
 }
 
 export const deleteFiles = async (files: string[]): Promise<any> => {
@@ -54,6 +58,7 @@ export const upload = async (req: Request, res: Response): Promise<any> => {
           });
       }
   } catch (err) {
+      console.error(err);
       res.status(500).send({ error: err });
   }
 }

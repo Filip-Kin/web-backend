@@ -13,6 +13,7 @@ export class Blog {
     public getPost = async (id: string): Promise<Post> => {
         let result = (await this.sql.query('SELECT * FROM `posts` WHERE `id` = ?;', [id]));
         if (result.length !== 1) throw new Error('Post not found');
+        result[0].images = JSON.parse(result[0].images);
         return <Post>result[0];
     }
 
@@ -37,7 +38,7 @@ export class Blog {
 
 
 
-    public createPost = async (title: string, content: string, id: string = null): Promise<Post> => {
+    public createPost = async (title: string, content: string, allImages: string[], id: string = null): Promise<Post> => {
         let images = []; // store an array of images seperately so we know what to delete and what to display on the home page
         let m;
 
@@ -51,6 +52,11 @@ export class Blog {
                 // and then setup the substring for next iteration
                 i += m.index + m[0].length;
             } else break;
+        }
+
+        // This will delete any files that were uploaded but then removed from the post
+        for (let i of allImages) {
+            if (!images.includes(i)) deleteFile(i);
         }
 
         let post: Post;
@@ -88,13 +94,14 @@ export class Blog {
 
     public handleCreatePost = async (req: Request, res: Response): Promise<any> => {
         if (!req.body.hasOwnProperty('title') ||
-            !req.body.hasOwnProperty('content')) {
+            !req.body.hasOwnProperty('content') ||
+            !req.body.hasOwnProperty('images')) {
             res.status(400);
             return res.send({ error: 'Missing Parameters' });
         }
 
         try {
-            let post = await this.createPost(req.body.title, req.body.content);
+            let post = await this.createPost(req.body.title, req.body.content, req.body.images);
             res.send({ post: post });
         } catch (err) {
             res.status(500);
@@ -104,13 +111,14 @@ export class Blog {
 
     public handleUpdatePost = async (req: Request, res: Response): Promise<any> => {
         if (!req.body.hasOwnProperty('title') ||
-            !req.body.hasOwnProperty('content')) {
+            !req.body.hasOwnProperty('content') ||
+            !req.body.hasOwnProperty('images')) {
             res.status(400);
             return res.send({ error: 'Missing Parameters' });
         }
 
         try {
-            let post = await this.createPost(req.body.title, req.body.content, req.params.id);
+            let post = await this.createPost(req.body.title, req.body.content, req.body.images, req.params.id);
             res.send({ post: post });
         } catch (err) {
             res.status(500);

@@ -99,7 +99,7 @@ export class Gallery {
 
     public updateAlbum = async (id: string, images: string[] = undefined, weight: number = undefined, name: string = undefined): Promise<any> => {
         let update = {
-            images: images,
+            images: JSON.stringify(images),
             weight: weight,
             name: name
         };
