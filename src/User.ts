@@ -133,10 +133,37 @@ export class User {
         }
 
         try {
-            const user = await this.auth(req.headers.id, req.headers.password, ADMIN_ROLE);
+            let user = await this.auth(req.headers.id, req.headers.password, ADMIN_ROLE);
             if (user) {
                 let allUsers = await this.getAllUsers();
                 res.send({ users: allUsers });
+            }
+            else {
+                res.status(403);
+                return res.send({ error: 'Authentication error' });
+            }
+        } catch (err) {
+            res.status(500);
+            res.send({ error: err.message });
+        }
+
+    }
+
+    public getUser = async (id) => {
+        try {
+            let users = await this.sql.query('SELECT * FROM `users` WHERE `id` = ?', [id]);
+            return users
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+
+    public handleGetUser =  async (req: Request, res: Response): Promise<any> => {
+        try {
+            let user = await this.getUser(req.headers.id);
+            if (user) {
+                res.send({ user: user });
             }
             else {
                 res.status(403);

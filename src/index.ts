@@ -119,6 +119,7 @@ app.use(async (req, res, next) => {
 // Admin permissions
 
 app.post('/user/', (req, res) => user.handleCreateUser(req, res));
+app.get('/user/:id', (req, res) => user.handleGetUser(req, res));
 app.post('/user/:id/resetpassword', (req, res) => user.handleResetPasswordUser(req, res));
 
 
